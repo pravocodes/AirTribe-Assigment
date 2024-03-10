@@ -1,9 +1,11 @@
+// Import necessary modules and dependencies
 import CourseModel from "../models/CourseModel.js";
 import StudentModel from "../models/StudentModel.js";
 
+// Controller function to handle course creation
 export const createCourse = async (req, res) => {
   try {
-    // Parse request body
+    // Parse request body to extract course details
     const creatorId = req.user._id;
     const {
       name,
@@ -16,14 +18,15 @@ export const createCourse = async (req, res) => {
     } = req.body;
 
     // Validate input data
-    console.log(name, maxSeats, startDate, creatorId);
     if (!name || !maxSeats || !startDate || !creatorId) {
-      return res.status(400).send({
-        message: "Name, maxSeats, startDate, and creatorId are required.",
-      });
+      return res
+        .status(400)
+        .send({
+          message: "Name, maxSeats, startDate, and creatorId are required.",
+        });
     }
 
-    // Create course in database
+    // Create course in the database
     const course = await new CourseModel({
       name,
       maxSeats,
@@ -35,10 +38,12 @@ export const createCourse = async (req, res) => {
       description,
     }).save();
 
+    // Return success message along with the created course
     return res
-      .status(200)
+      .status(201)
       .send({ success: true, message: "Course created successfully.", course });
   } catch (error) {
+    // Handle errors
     console.error(error);
     return res
       .status(500)
@@ -46,11 +51,13 @@ export const createCourse = async (req, res) => {
   }
 };
 
+// Controller function to handle updating course details
 export const updateCourseDetails = async (req, res) => {
   try {
     // Parse request parameters
     const courseId = req.params.id;
     const updateData = req.body;
+
     // Find the course by ID
     const course = await CourseModel.findById(courseId);
     if (!course) {
@@ -58,36 +65,46 @@ export const updateCourseDetails = async (req, res) => {
         .status(404)
         .send({ success: false, message: "Course not found." });
     }
+
     // Check if the current user is the creator of the course
     if (!course.creatorId.equals(req.user._id)) {
-      return res.status(403).send({
-        success: false,
-        message: "You are not authorized to update this course.",
-      });
+      return res
+        .status(403)
+        .send({
+          success: false,
+          message: "You are not authorized to update this course.",
+        });
     }
 
-    // Update course details in database
+    // Update course details in the database
     const updatedCourse = await CourseModel.findByIdAndUpdate(
       courseId,
       updateData,
       { new: true }
     );
 
-    return res.status(200).send({
-      success: true,
-      message: "Course details updated successfully.",
-      course: updatedCourse,
-    });
+    // Return success message along with the updated course
+    return res
+      .status(200)
+      .send({
+        success: true,
+        message: "Course details updated successfully.",
+        course: updatedCourse,
+      });
   } catch (error) {
+    // Handle errors
     console.error(error);
-    return res.status(500).send({
-      success: false,
-      message: "Error updating course details.",
-      error,
-    });
+    return res
+      .status(500)
+      .send({
+        success: false,
+        message: "Error updating course details.",
+        error,
+      });
   }
 };
 
+// Controller function to handle registering a student for a course
 export const registerStudentForCourse = async (req, res) => {
   try {
     // Parse request body
@@ -96,10 +113,12 @@ export const registerStudentForCourse = async (req, res) => {
 
     // Validate input data
     if (!name || !email || !phoneNumber || !linkedinProfile) {
-      return res.status(400).send({
-        message:
-          "Name, email, phone number, and LinkedIn profile are required.",
-      });
+      return res
+        .status(400)
+        .send({
+          message:
+            "Name, email, phone number, and LinkedIn profile are required.",
+        });
     }
 
     // Find the course by ID
@@ -107,8 +126,6 @@ export const registerStudentForCourse = async (req, res) => {
     if (!course) {
       return res.status(404).send({ message: "Course not found." });
     }
-
-    console.log(name, email, phoneNumber, linkedinProfile);
 
     // Find the student by matching name, email, phone number, and LinkedIn profile
     const student = await StudentModel.findOne({
@@ -120,30 +137,39 @@ export const registerStudentForCourse = async (req, res) => {
 
     // If student not found, return error
     if (!student) {
-      return res.status(404).send({
-        message:
-          "Data Provided is not match as Student, Provide Correct details or Register as Student First",
-      });
+      return res
+        .status(404)
+        .send({
+          message:
+            "Student not found. Please provide correct details or register as a student first.",
+        });
     }
 
     // Add student ID to the waiting list of the course
     course.waitingLeads.push(student._id);
     await course.save();
 
-    return res.status(200).send({
-      success: true,
-      message: "Student registered for the course successfully.",
-    });
+    // Return success message
+    return res
+      .status(200)
+      .send({
+        success: true,
+        message: "Student registered for the course successfully.",
+      });
   } catch (error) {
+    // Handle errors
     console.error(error);
-    return res.status(500).send({
-      success: false,
-      message: "Error registering student for the course.",
-      error,
-    });
+    return res
+      .status(500)
+      .send({
+        success: false,
+        message: "Error registering student for the course.",
+        error,
+      });
   }
 };
 
+// Controller function to handle updating lead status
 export const updateLeadStatus = async (req, res) => {
   try {
     // Parse request parameters
@@ -152,16 +178,21 @@ export const updateLeadStatus = async (req, res) => {
 
     // Validate input data
     if (!status || !["accepted", "rejected", "waiting"].includes(status)) {
-      return res.status(400).send({
-        message:
-          "Invalid status value. Status must be 'accepted', 'rejected', or 'waiting'.",
-      });
+      return res
+        .status(400)
+        .send({
+          message:
+            "Invalid status value. Status must be 'accepted', 'rejected', or 'waiting'.",
+        });
     }
-    // Check if the user making the request is the creator of the course
+
+    // Find the course by ID
     const course = await CourseModel.findById(courseId);
     if (!course) {
       return res.status(404).send({ message: "Course not found." });
     }
+
+    // Check if the user making the request is the creator of the course
     if (course.creatorId.toString() !== req.user._id) {
       return res
         .status(403)
@@ -188,10 +219,12 @@ export const updateLeadStatus = async (req, res) => {
 
     await Promise.all([lead.save(), course.save()]);
 
+    // Return success message
     return res
       .status(200)
       .send({ success: true, message: "Lead status updated successfully." });
   } catch (error) {
+    // Handle errors
     console.error(error);
     return res
       .status(500)
@@ -199,7 +232,7 @@ export const updateLeadStatus = async (req, res) => {
   }
 };
 
-// Function to search leads
+// Controller function to handle searching leads
 export const searchLeadsController = async (req, res) => {
   try {
     // Parse query parameters
@@ -220,14 +253,13 @@ export const searchLeadsController = async (req, res) => {
       ],
     });
 
+    // Return search results
     return res.status(200).send({ success: true, results });
   } catch (error) {
-    // If there is an error in the API, return an error message
-    console.log(error);
-    return res.status(500).send({
-      success: false,
-      message: "Error in searchLeads API",
-      error,
-    });
+    // Handle errors
+    console.error(error);
+    return res
+      .status(500)
+      .send({ success: false, message: "Error in searchLeads API", error });
   }
 };
