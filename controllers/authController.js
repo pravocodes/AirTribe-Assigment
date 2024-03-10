@@ -5,7 +5,8 @@ import Jwt from "jsonwebtoken";
 
 export const RegisterController = async (req, res) => {
   try {
-    const { Name, PhoneNumber, Role, Email, Password } = req.body;
+    const { Name, PhoneNumber, Role, Email, Password, linkedinProfile } =
+      req.body;
 
     if (!Name) {
       return res.send({ message: "Name is Required" });
@@ -40,6 +41,7 @@ export const RegisterController = async (req, res) => {
         PhoneNumber,
         Role,
         Email,
+        linkedinProfile,
         Password: hashPassword,
       }).save();
     } else if (Role === "Instructor") {
