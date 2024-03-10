@@ -5,7 +5,8 @@ import conn from "./dbconfig/db.js";
 import cors from "cors";
 import authRoute from "./routes/authRoute.js";
 import instructorRoute from "./routes/instructorRoute.js";
-import courseRoute from "./routes/courseRoute.js"
+import courseRoute from "./routes/courseRoute.js";
+import commentRoute from "./routes/commentRoute.js";
 const app = Express();
 app.get("/", (req, res) => {
   res.send("<h1>Welcome</h1>");
@@ -19,6 +20,7 @@ app.use(cors());
 app.use("/api/auth", authRoute);
 app.use("/api/instructor", instructorRoute);
 app.use("/api/course", courseRoute);
+app.use("/api/comment", commentRoute);
 
 conn();
 const port = 5000;

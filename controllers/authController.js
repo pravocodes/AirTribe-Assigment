@@ -7,7 +7,7 @@ export const RegisterController = async (req, res) => {
   try {
     const { Name, PhoneNumber, Role, Email, Password, linkedinProfile } =
       req.body;
-
+    
     if (!Name) {
       return res.send({ message: "Name is Required" });
     }
@@ -23,7 +23,6 @@ export const RegisterController = async (req, res) => {
     if (!Password) {
       return res.send({ message: "Password is Required" });
     }
-    // console.log("data fetched")
 
     const InstructorExist = await InstructorModel.findOne({ Email });
     const StudentExist = await StudentModel.findOne({ Email });
