@@ -201,46 +201,33 @@ export const updateLeadStatus = async (req, res) => {
 
 // Function to search leads
 export const searchLeadsController = async (req, res) => {
-    try {
-        // Destructure the request body
-        const { name, email } = req.body;
+  try {
+    // Parse query parameters
+    const { keyword } = req.query;
 
-        let leads;
-        // If both name and email are provided, search by both
-        if (name && email) {
-            leads = await LeadsModel.find({
-                name: new RegExp(name, 'i'),
-                email: new RegExp(email, 'i')
-            });
-        } 
-        // If only name is provided, search by name
-        else if (name) {
-            leads = await LeadsModel.find({ name: new RegExp(name, 'i') });
-        } 
-        // If only email is provided, search by email
-        else if (email) {
-            leads = await LeadsModel.find({ email: new RegExp(email, 'i') });
-        } 
-        // If neither name nor email is provided, return an error
-        else {
-            return res.status(400).send({
-                success: false,
-                message: "Please provide a name or email for search"
-            });
-        }
-
-        // Return the found leads
-        return res.status(200).send({
-            success: true,
-            message: "Leads fetched successfully",
-            leads
-        });
-    } catch (error) {
-        // If there is an error in the API, return an error message
-        return res.status(500).send({
-            success: false,
-            message: "Error in searchLeads API",
-            error
-        })
+    // Validate input data
+    if (!keyword) {
+      return res
+        .status(400)
+        .send({ message: "Keyword parameter is required for search." });
     }
-}
+
+    // Search for leads in the StudentModel by name or email
+    const results = await StudentModel.find({
+      $or: [
+        { Name: { $regex: keyword, $options: "i" } }, // Case-insensitive regex search for name
+        { Email: { $regex: keyword, $options: "i" } }, // Case-insensitive regex search for email
+      ],
+    });
+
+    return res.status(200).send({ success: true, results });
+  } catch (error) {
+    // If there is an error in the API, return an error message
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "Error in searchLeads API",
+      error,
+    });
+  }
+};
