@@ -25,6 +25,10 @@ const StudentModel = new mongoose.Schema(
       type: String,
       required: true,
     },
+    linkedinProfile: {
+      type: String,
+      required: true,
+    },
   },
   {
     timestamps: true,
